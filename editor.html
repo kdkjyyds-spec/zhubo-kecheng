@@ -103,8 +103,8 @@
 
 <div class="top">
   <h1>主播维护课堂 · 内容编辑器</h1>
-  <p>改完点「预览」看效果 → 点「保存到本地」覆盖 content.js → 刷新 index.html 即生效。上线交给工友 push。</p>
-  <span class="tip">字段里可以写 &lt;strong&gt;加粗&lt;/strong&gt;、&lt;br&gt;换行；权益 / 课时是「一行一条」</span>
+  <p>改完点「预览」看效果 → 点「保存到本地」选项目文件夹，一次写好 content.js 和 index.html → 刷新页面即生效。上线交给工友 push。</p>
+  <span class="tip">线上 index.html 是纯静态成品，微信/搜索引擎都能正常抓取；content.js 是唯一内容源，两边由编辑器同步写，不会脱节</span>
 </div>
 
 <div class="wrap">
@@ -114,8 +114,9 @@
 
 <div class="bar">
   <button class="btn" data-act="preview">👀 预览</button>
-  <button class="btn" data-act="download">⬇ 下载 content.js</button>
   <button class="btn primary" data-act="save-local">💾 保存到本地</button>
+  <button class="btn" data-act="download">⬇ 下载 content.js</button>
+  <button class="btn" data-act="download-html">⬇ 下载 index.html</button>
   <button class="btn ghost" data-act="reset">↺ 还原</button>
   <span class="dirty clean" id="dirty">● 未修改</span>
 </div>
@@ -346,7 +347,7 @@
   function render(){
     document.getElementById('tabs').innerHTML=TABS.map(function(t){
       return '<button class="tab'+(t.k===tab?' on':'')+'" data-act="tab" data-tab="'+t.k+'">'+t.t+'</button>';
-    }).join('')+'<div class="hint">改完别忘保存。<br>「保存到本地」会直接覆盖同目录的 content.js；<br>若浏览器不支持，用「下载 content.js」手动覆盖。</div>';
+    }).join('')+'<div class="hint">改完别忘保存。<br>「保存到本地」会选中项目文件夹，<br>同时写入 content.js 和 index.html 两个文件。<br>字段里可写 &lt;strong&gt;加粗&lt;/strong&gt;、&lt;br&gt;换行；<br>权益 / 课时是「一行一条」。</div>';
     document.getElementById('form').innerHTML=VIEWS[tab]();
   }
 
@@ -393,6 +394,7 @@
     }
     if(a==='close-preview'){ document.getElementById('mask').classList.remove('on'); return; }
     if(a==='download'){ download(); return; }
+    if(a==='download-html'){ downloadHtml(); return; }
     if(a==='save-local'){ saveLocal(); return; }
     if(a==='reset'){
       if(!confirm('放弃所有修改，还原成打开时的内容？')) return;
@@ -428,24 +430,35 @@
            '/* 这是全站唯一内容源：改这里，或用 editor.html 可视化编辑 */\n'+
            'window.SITE_CONTENT = '+JSON.stringify(data,null,2)+';\n';
   }
-  function download(){
-    var blob=new Blob([serialize()],{type:'text/javascript;charset=utf-8'});
-    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='content.js';
+  function saveBlob(text,name,type){
+    var blob=new Blob([text],{type:type});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
-    toast('已下载 content.js，覆盖到项目目录即可');
+  }
+  function download(){
+    saveBlob(serialize(),'content.js','text/javascript;charset=utf-8');
+    toast('已下载 content.js');
+  }
+  function downloadHtml(){
+    saveBlob(buildFullHTML(data),'index.html','text/html;charset=utf-8');
+    toast('已下载 index.html（纯静态成品，可直接上线）');
   }
   async function saveLocal(){
-    if(!window.showSaveFilePicker){ toast('这个浏览器不支持直接保存，请点「下载 content.js」'); return; }
+    if(!window.showDirectoryPicker){
+      download(); setTimeout(downloadHtml,500);
+      toast('该浏览器不支持选文件夹，已分别下载两个文件，请覆盖到项目目录');
+      return;
+    }
     try{
-      var h=await window.showSaveFilePicker({
-        suggestedName:'content.js',
-        types:[{description:'JavaScript 文件',accept:{'text/javascript':['.js']}}]
-      });
-      var w=await h.createWritable(); await w.write(serialize()); await w.close();
+      var dir=await window.showDirectoryPicker({mode:'readwrite'});
+      var f1=await dir.getFileHandle('content.js',{create:true});
+      var w1=await f1.createWritable(); await w1.write(serialize()); await w1.close();
+      var f2=await dir.getFileHandle('index.html',{create:true});
+      var w2=await f2.createWritable(); await w2.write(buildFullHTML(data)); await w2.close();
       dirty=false;
       var d=document.getElementById('dirty'); d.textContent='● 已保存'; d.className='dirty clean';
-      toast('保存成功！刷新 index.html 就能看到改后的样子');
+      toast('保存成功！content.js 和 index.html 已一起更新，刷新页面即生效');
     }catch(err){ if(err.name!=='AbortError') toast('保存失败：'+err.message); }
   }
 

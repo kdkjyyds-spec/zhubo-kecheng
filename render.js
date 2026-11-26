@@ -417,7 +417,7 @@ function renderContent(C) {
 function buildFullHTML(C) {
   return '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n' +
     '<meta charset="UTF-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">\n' +
     '<title>' + esc(C.meta.title) + '</title>\n' +
     '<style>' + SITE_STYLE + '</style>\n</head>\n<body>\n' +
     renderContent(C) + '\n</body>\n</html>';
