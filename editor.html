@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主播维护课堂 · 内容编辑器</title>
+<style>
+  :root{
+    --rose:#C48189; --rose-light:#F5E6E9; --rose-bg:#FDF8F9;
+    --text:#3D2C2E; --muted:#8B6B70; --border:#F0E0E3;
+    --line:#E8DADD; --card:#FFFFFF; --bg:#FAF6F7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;}
+  button{font-family:inherit;cursor:pointer;}
+  input,textarea,select{font-family:inherit;font-size:13px;}
+
+  .top{background:#fff;border-bottom:1px solid var(--border);padding:18px 24px;position:sticky;top:0;z-index:20;}
+  .top h1{font-size:19px;font-weight:800;color:var(--rose);}
+  .top p{font-size:12px;color:var(--muted);margin-top:4px;}
+  .top .tip{display:inline-block;margin-top:8px;background:var(--rose-light);color:#9B5A63;
+            padding:5px 12px;border-radius:6px;font-size:12px;}
+
+  .wrap{display:flex;max-width:1180px;margin:0 auto;gap:20px;padding:20px;}
+  .side{width:170px;flex-shrink:0;position:sticky;top:110px;align-self:flex-start;}
+  .tab{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--border);
+       border-radius:10px;padding:11px 14px;margin-bottom:8px;color:var(--muted);font-size:13px;font-weight:600;}
+  .tab:hover{border-color:var(--rose);}
+  .tab.on{background:var(--rose);color:#fff;border-color:var(--rose);}
+  .side .hint{font-size:11px;color:var(--muted);line-height:1.6;padding:10px 4px;}
+
+  .main{flex:1;min-width:0;background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 24px 90px;}
+  .main h2{font-size:17px;font-weight:800;margin-bottom:4px;}
+  .main .sub-desc{font-size:12px;color:var(--muted);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+  .grp{margin-bottom:22px;padding-bottom:18px;border-bottom:1px dashed var(--line);}
+  .grp:last-child{border:none;}
+  .grp > h3{font-size:14px;font-weight:700;color:var(--rose);margin-bottom:12px;}
+
+  .f{margin-bottom:12px;}
+  .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+  .f input,.f textarea,.f select{width:100%;border:1px solid var(--line);border-radius:8px;
+       padding:9px 11px;background:#fff;color:var(--text);outline:none;}
+  .f input:focus,.f textarea:focus,.f select:focus{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-light);}
+  .f textarea{resize:vertical;min-height:60px;line-height:1.7;}
+  .f small{display:block;font-size:11px;color:#B0939A;margin-top:4px;}
+  .row{display:flex;gap:12px;}
+  .row > .f{flex:1;min-width:0;}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:12px;}
+  .checkline input{width:auto;}
+
+  .list-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#FEFBFC;}
+  .list-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .list-head .no{background:var(--rose-light);color:var(--rose);font-size:11px;font-weight:700;
+       padding:2px 8px;border-radius:12px;}
+  .list-head .ttl{font-weight:700;font-size:13px;flex:1;}
+  .mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 9px;font-size:12px;color:var(--muted);}
+  .mini:hover{border-color:var(--rose);color:var(--rose);}
+  .mini.danger:hover{border-color:#C05050;color:#C05050;}
+
+  .pcard{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+  .pcard-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#FDF8F9;}
+  .pcard-head .no{background:var(--rose);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;}
+  .pcard-head .ttl{font-weight:800;font-size:14px;flex:1;}
+  .pcard-head .pr{font-size:13px;color:var(--rose);font-weight:700;}
+  .pcard-body{padding:14px;border-top:1px solid var(--line);}
+  .mod{border:1px dashed var(--line);border-radius:9px;padding:11px;margin-bottom:10px;background:#fff;}
+  .mod-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .mod-head .ttl{font-size:12px;font-weight:700;color:var(--rose);flex:1;}
+
+  .bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);
+       padding:12px 24px;display:flex;gap:10px;justify-content:center;align-items:center;z-index:30;
+       box-shadow:0 -4px 18px rgba(120,80,90,.06);}
+  .btn{border:1px solid var(--rose);background:#fff;color:var(--rose);border-radius:22px;
+       padding:10px 22px;font-size:13px;font-weight:700;}
+  .btn:hover{background:var(--rose-light);}
+  .btn.primary{background:var(--rose);color:#fff;}
+  .btn.primary:hover{opacity:.9;}
+  .btn.ghost{border-color:var(--line);color:var(--muted);}
+  .dirty{font-size:12px;color:#C05050;margin-left:10px;}
+  .dirty.clean{color:#4E9A6A;}
+
+  .mask{position:fixed;inset:0;background:rgba(50,35,38,.55);z-index:50;display:none;
+        flex-direction:column;align-items:center;padding:20px;}
+  .mask.on{display:flex;}
+  .mask-bar{width:min(760px,100%);display:flex;justify-content:space-between;align-items:center;
+            background:#fff;border-radius:10px 10px 0 0;padding:10px 14px;font-size:13px;font-weight:700;}
+  .mask iframe{width:min(760px,100%);flex:1;background:#fff;border:none;border-radius:0 0 10px 10px;}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#3D2C2E;color:#fff;
+         padding:10px 20px;border-radius:8px;font-size:13px;z-index:99;display:none;}
+  @media(max-width:760px){
+    .wrap{flex-direction:column;padding:12px;}
+    .side{width:100%;position:static;display:flex;flex-wrap:wrap;gap:6px;}
+    .tab{width:auto;flex:1;min-width:90px;margin:0;text-align:center;}
+    .side .hint{display:none;}
+    .row{flex-direction:column;gap:0;}
+    .bar{flex-wrap:wrap;padding:10px;}
+    .btn{padding:9px 14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>主播维护课堂 · 内容编辑器</h1>
+  <p>改完点「预览」看效果 → 点「保存到本地」覆盖 content.js → 刷新 index.html 即生效。上线交给工友 push。</p>
+  <span class="tip">字段里可以写 &lt;strong&gt;加粗&lt;/strong&gt;、&lt;br&gt;换行；权益 / 课时是「一行一条」</span>
+</div>
+
+<div class="wrap">
+  <div class="side" id="tabs"></div>
+  <div class="main" id="form"></div>
+</div>
+
+<div class="bar">
+  <button class="btn" data-act="preview">👀 预览</button>
+  <button class="btn" data-act="download">⬇ 下载 content.js</button>
+  <button class="btn primary" data-act="save-local">💾 保存到本地</button>
+  <button class="btn ghost" data-act="reset">↺ 还原</button>
+  <span class="dirty clean" id="dirty">● 未修改</span>
+</div>
+
+<div class="mask" id="mask">
+  <div class="mask-bar"><span>页面预览（手机宽度可拖动窗口看）</span><button class="mini" data-act="close-preview">关闭 ✕</button></div>
+  <iframe id="previewFrame" title="页面预览"></iframe>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="content.js"></script>
+<script src="render.js"></script>
+<script>
+(function(){
+  if(!window.SITE_CONTENT){ alert('没读到 content.js，请确认 editor.html 和 content.js 在同一个文件夹'); return; }
+  var ORIGIN = JSON.parse(JSON.stringify(window.SITE_CONTENT));
+  var data = JSON.parse(JSON.stringify(ORIGIN));
+  var tab = 'products';
+  var open = {};           // 展开的产品卡
+  var dirty = false;
+
+  var TABS = [
+    {k:'header',   t:'① 首页头部'},
+    {k:'letter',   t:'② 一封信'},
+    {k:'pains',    t:'③ 痛点'},
+    {k:'products', t:'④ 课程 / 服务'},
+    {k:'faq',      t:'⑤ 常见问题'},
+    {k:'footer',   t:'⑥ 底部'}
+  ];
+
+  /* ---------- 工具 ---------- */
+  function getPath(o, p){ return p.split('.').reduce(function(a,k){ return a==null?undefined:a[k]; }, o); }
+  function setPath(o, p, v){
+    var ks=p.split('.'), last=ks.pop(), cur=o;
+    ks.forEach(function(k){ if(cur[k]==null) cur[k]={}; cur=cur[k]; });
+    cur[last]=v;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escA(s){ return esc(s).replace(/"/g,'&quot;'); }
+  function val(p){ var v=getPath(data,p); return v==null?'':v; }
+  function arrText(p){ var v=getPath(data,p); return Array.isArray(v)?v.join('\n'):''; }
+  function mark(){ dirty=true; var d=document.getElementById('dirty'); d.textContent='● 有未保存修改'; d.className='dirty'; }
+  function toast(msg){
+    var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+    clearTimeout(window.__tt); window.__tt=setTimeout(function(){ t.style.display='none'; },2600);
+  }
+
+  function fText(label,p,hint,type){
+    return '<div class="f"><label>'+label+'</label>'+
+      '<input data-path="'+p+'"'+(type?' data-type="'+type+'"':'')+' value="'+escA(val(p))+'">'+
+      (hint?'<small>'+hint+'</small>':'')+'</div>';
+  }
+  function fArea(label,p,rows,hint){
+    return '<div class="f"><label>'+label+'</label>'+
+      '<textarea data-path="'+p+'" rows="'+(rows||3)+'">'+esc(val(p))+'</textarea>'+
+      (hint?'<small>'+hint+'</small>':'')+'</div>';
+  }
+  function fMulti(label,p,rows,hint){
+    return '<div class="f"><label>'+label+'</label>'+
+      '<textarea data-path="'+p+'" data-multi="1" rows="'+(rows||4)+'">'+esc(arrText(p))+'</textarea>'+
+      (hint?'<small>'+hint+'</small>':'')+'</div>';
+  }
+  function fSelect(label,p,opts){
+    var cur=String(val(p));
+    return '<div class="f"><label>'+label+'</label><select data-path="'+p+'">'+
+      opts.map(function(o){ return '<option value="'+escA(o[0])+'"'+(o[0]===cur?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('')+
+      '</select></div>';
+  }
+  function fCheck(label,p){
+    return '<label class="checkline"><input type="checkbox" data-path="'+p+'" data-type="bool"'+
+      (getPath(data,p)?' checked':'')+'> '+label+'</label>';
+  }
+  function ops(act,idx,showMove,extra){
+    var h='';
+    if(showMove){
+      h+='<button class="mini" data-act="'+act+'" data-idx="'+idx+'" data-dir="-1" title="上移">↑</button>'+
+         '<button class="mini" data-act="'+act+'" data-idx="'+idx+'" data-dir="1" title="下移">↓</button>';
+    }
+    if(extra) h+=extra;
+    h+='<button class="mini danger" data-act="del-'+act+'" data-idx="'+idx+'">删除</button>';
+    return h;
+  }
+
+  /* ---------- 各分区 ---------- */
+  function viewHeader(){
+    var h='<h2>首页头部</h2><p class="sub-desc">浏览器标签标题、导航、首屏大标题和按钮。</p>';
+    h+='<div class="grp"><h3>站点 & 导航</h3>'+
+       fText('浏览器标题','meta.title')+
+       fText('左上角 Logo','meta.logo')+
+       fText('导航按钮文字','navCta');
+    (data.nav||[]).forEach(function(n,i){
+      h+='<div class="row">'+
+         fText('导航 '+(i+1)+' 文字','nav.'+i+'.label')+
+         fText('跳转锚点','nav.'+i+'.href','如 #letter / #products / #faq')+'</div>';
+    });
+    h+='<button class="mini" data-act="add-nav">＋ 添加导航项</button></div>';
+    h+='<div class="grp"><h3>首屏 Hero</h3>'+
+       fText('顶部小徽章','hero.badge')+
+       fText('大标题第一行','hero.title1')+
+       fText('大标题第二行','hero.title2','第一行后自动换行')+
+       fText('高亮词（玫瑰色）','hero.highlight')+
+       fText('副标题第一行','hero.desc1')+
+       fText('副标题第二行','hero.desc2')+
+       '<div class="row">'+fText('主按钮','hero.btn1')+fText('次按钮','hero.btn2')+'</div>'+
+       '</div>';
+    return h;
+  }
+
+  function viewLetter(){
+    var h='<h2>一封信</h2><p class="sub-desc">按顺序排列的段落。类型：小标题 / 正文 / 引用框。内容里可写 &lt;strong&gt; 加粗、&lt;br&gt; 换行。</p>';
+    h+='<div class="grp"><h3>基本信息</h3>'+
+       fText('卡片小标签','letter.signature')+
+       fText('大标题','letter.title')+
+       fText('落款','letter.closing')+'</div>';
+    h+='<div class="grp"><h3>段落（可增删 / 排序）</h3>';
+    (data.letter.blocks||[]).forEach(function(b,i){
+      h+='<div class="list-item"><div class="list-head">'+
+         '<span class="no">'+String(i+1).padStart(2,'0')+'</span>'+
+         '<span class="ttl">'+({h4:'小标题',p:'正文',quote:'引用框'}[b.type]||'正文')+'</span>'+
+         ops('block',i,true)+
+         '</div>'+
+         fSelect('段落类型','letter.blocks.'+i+'.type',[['p','正文'],['h4','小标题'],['quote','引用框（粉色底）']])+
+         fArea('内容','letter.blocks.'+i+'.text',b.type==='quote'?4:2)+
+         '</div>';
+    });
+    h+='<button class="mini" data-act="add-block">＋ 添加段落</button></div>';
+    return h;
+  }
+
+  function viewPains(){
+    var h='<h2>痛点区</h2><p class="sub-desc">3 列小卡片，手机端自动变 2 列。</p>';
+    h+='<div class="grp"><h3>标题</h3>'+fText('主标题','pains.title')+fText('副标题','pains.subtitle')+'</div>';
+    h+='<div class="grp"><h3>痛点条目</h3>';
+    (data.pains.items||[]).forEach(function(it,i){
+      h+='<div class="list-item"><div class="list-head">'+
+         '<span class="no">'+String(i+1).padStart(2,'0')+'</span>'+
+         '<span class="ttl">'+esc(it.title)+'</span>'+ops('pain',i,true)+'</div>'+
+         '<div class="row">'+fText('图标 emoji','pains.items.'+i+'.icon')+fText('标题','pains.items.'+i+'.title')+'</div>'+
+         fText('说明','pains.items.'+i+'.desc')+'</div>';
+    });
+    h+='<button class="mini" data-act="add-pain">＋ 添加痛点</button></div>';
+    return h;
+  }
+
+  function newProduct(){
+    return {id:'p'+Date.now().toString().slice(-6),name:'新服务',price:'面议',unit:'定制服务',
+      desc:'一句话说明这项服务',benefits:['服务权益一','服务权益二'],extra:null,
+      numbering:'perModule',modules:[],btn:'咨询详情',btnNote:'请通过微信或私信联系咨询',featured:false};
+  }
+  function viewProducts(){
+    var h='<h2>课程 / 服务</h2><p class="sub-desc">这里就是「服务」列表。想加一项就点最下面「＋ 新增服务」，比如「主播军事」。每张卡都能改名字、价格、权益、课程目录、按钮。</p>';
+    h+='<div class="grp"><h3>服务卡片（'+data.products.length+' 项）</h3>';
+    h+='<div style="margin-bottom:12px"><button class="mini" data-act="expand-all">展开全部</button> '+
+       '<button class="mini" data-act="collapse-all">收起全部</button></div>';
+
+    data.products.forEach(function(p,i){
+      var isOpen=!!open[i];
+      var extraBtns='<button class="mini" data-act="toggle-product" data-idx="'+i+'">'+(isOpen?'收起':'编辑')+'</button>';
+      h+='<div class="pcard"><div class="pcard-head">'+
+         '<span class="no">'+String(i+1).padStart(2,'0')+'</span>'+
+         '<span class="ttl">'+esc(p.name)+'</span>'+
+         '<span class="pr">'+esc(p.price)+'</span>'+
+         ops('product',i,true,extraBtns)+
+         '</div>';
+      if(isOpen){
+        h+='<div class="pcard-body">'+
+           '<div class="row">'+fText('服务名称','products.'+i+'.name')+fText('价格','products.'+i+'.price','可写 ¥99 / 面议')+'</div>'+
+           '<div class="row">'+fText('价格后缀','products.'+i+'.unit','如 永久有效 / 起 / 月')+
+             fSelect('课时编号规则','products.'+i+'.numbering',[['perModule','每个模块从 1 重新编号'],['global','整张卡连续编号']])+'</div>'+
+           fText('一句话简介','products.'+i+'.desc')+
+           fCheck('标记为「👑 最受欢迎」（粉色描边 + 主按钮）','products.'+i+'.featured')+
+           fMulti('你获得的权益（一行一条）','products.'+i+'.benefits',5)+
+           '<div class="row">'+fText('补充块标题（留空则不显示）','products.'+i+'.extra.title')+
+             fText('补充块内容','products.'+i+'.extra.text')+'</div>'+
+           '<div class="row">'+fText('按钮文字','products.'+i+'.btn')+
+             fText('按钮弹窗提示','products.'+i+'.btnNote')+'</div>'+
+
+           '<div class="grp" style="margin-top:18px"><h3>课程目录（没有就留空）</h3>';
+        (p.modules||[]).forEach(function(m,j){
+          h+='<div class="mod"><div class="mod-head">'+
+             '<span class="ttl">模块 '+(j+1)+' · '+esc(m.title)+'</span>'+
+             '<button class="mini" data-act="move-module" data-pidx="'+i+'" data-midx="'+j+'" data-dir="-1">↑</button>'+
+             '<button class="mini" data-act="move-module" data-pidx="'+i+'" data-midx="'+j+'" data-dir="1">↓</button>'+
+             '<button class="mini danger" data-act="del-module" data-pidx="'+i+'" data-midx="'+j+'">删除</button>'+
+             '</div>'+
+             '<div class="row">'+fText('模块标题','products.'+i+'.modules.'+j+'.title')+
+               fText('标注节数','products.'+i+'.modules.'+j+'.count',null,'num')+'</div>'+
+             fMulti('课时名称（一行一节）','products.'+i+'.modules.'+j+'.lessons',5)+
+             '</div>';
+        });
+        h+='<button class="mini" data-act="add-module" data-pidx="'+i+'">＋ 添加模块</button></div>'+
+           '</div>';
+      }
+      h+='</div>';
+    });
+    h+='<button class="btn" data-act="add-product">＋ 新增服务</button></div>';
+    return h;
+  }
+
+  function viewFaq(){
+    var h='<h2>常见问题</h2><p class="sub-desc">一问一答，可增删 / 排序。</p>';
+    h+='<div class="grp"><h3>标题</h3>'+fText('板块标题','faq.title')+'</div><div class="grp"><h3>问答</h3>';
+    (data.faq.items||[]).forEach(function(it,i){
+      h+='<div class="list-item"><div class="list-head">'+
+         '<span class="no">'+String(i+1).padStart(2,'0')+'</span>'+
+         '<span class="ttl">'+esc(it.q)+'</span>'+ops('faq',i,true)+'</div>'+
+         fText('问题','faq.items.'+i+'.q')+
+         fArea('回答','faq.items.'+i+'.a',2)+'</div>';
+    });
+    h+='<button class="mini" data-act="add-faq">＋ 添加问答</button></div>';
+    return h;
+  }
+
+  function viewFooter(){
+    var h='<h2>底部</h2><p class="sub-desc">结尾大横幅 + 页脚三行。</p>';
+    h+='<div class="grp"><h3>行动号召横幅</h3>'+
+       fText('大标题','cta.title')+fText('说明','cta.desc')+
+       '<div class="row">'+fText('按钮文字','cta.btn')+fText('按钮弹窗提示','cta.btnNote')+'</div></div>';
+    h+='<div class="grp"><h3>页脚</h3>'+
+       fText('品牌名','footer.brand')+fText('一句话介绍','footer.tagline')+
+       fText('版权行','footer.copyright')+'</div>';
+    return h;
+  }
+
+  var VIEWS={header:viewHeader,letter:viewLetter,pains:viewPains,products:viewProducts,faq:viewFaq,footer:viewFooter};
+
+  /* ---------- 渲染 ---------- */
+  function render(){
+    document.getElementById('tabs').innerHTML=TABS.map(function(t){
+      return '<button class="tab'+(t.k===tab?' on':'')+'" data-act="tab" data-tab="'+t.k+'">'+t.t+'</button>';
+    }).join('')+'<div class="hint">改完别忘保存。<br>「保存到本地」会直接覆盖同目录的 content.js；<br>若浏览器不支持，用「下载 content.js」手动覆盖。</div>';
+    document.getElementById('form').innerHTML=VIEWS[tab]();
+  }
+
+  /* ---------- 数组操作 ---------- */
+  function move(a,i,d){ var j=i+d; if(j<0||j>=a.length) return false; var t=a[i]; a[i]=a[j]; a[j]=t; return true; }
+
+  var ACT={
+    'tab':function(e){ tab=e.dataset.tab; render(); },
+    'add-nav':function(){ data.nav.push({label:'新导航',href:'#products'}); },
+    'del-nav':function(e){ data.nav.splice(+e.dataset.idx,1); },
+    'add-block':function(){ data.letter.blocks.push({type:'p',text:'新段落'}); },
+    'del-block':function(e){ data.letter.blocks.splice(+e.dataset.idx,1); },
+    'move-block':function(e){ move(data.letter.blocks,+e.dataset.idx,+e.dataset.dir); },
+    'add-pain':function(){ data.pains.items.push({icon:'💡',title:'新痛点',desc:'一句话说明'}); },
+    'del-pain':function(e){ data.pains.items.splice(+e.dataset.idx,1); },
+    'move-pain':function(e){ move(data.pains.items,+e.dataset.idx,+e.dataset.dir); },
+    'add-faq':function(){ data.faq.items.push({q:'新问题？',a:'在这里写回答。'}); },
+    'del-faq':function(e){ data.faq.items.splice(+e.dataset.idx,1); },
+    'move-faq':function(e){ move(data.faq.items,+e.dataset.idx,+e.dataset.dir); },
+    'add-product':function(){ data.products.push(newProduct()); open[data.products.length-1]=true; },
+    'del-product':function(e){
+      if(!confirm('确定删除「'+data.products[+e.dataset.idx].name+'」？')) return false;
+      data.products.splice(+e.dataset.idx,1); open={};
+    },
+    'move-product':function(e){ move(data.products,+e.dataset.idx,+e.dataset.dir); open={}; },
+    'toggle-product':function(e){ var i=+e.dataset.idx; open[i]=!open[i]; },
+    'expand-all':function(){ data.products.forEach(function(_,i){ open[i]=true; }); },
+    'collapse-all':function(){ open={}; },
+    'add-module':function(e){
+      var p=data.products[+e.dataset.pidx];
+      if(!p.modules) p.modules=[];
+      p.modules.push({title:'新模块',count:1,lessons:['第一节']});
+    },
+    'del-module':function(e){ data.products[+e.dataset.pidx].modules.splice(+e.dataset.midx,1); },
+    'move-module':function(e){ move(data.products[+e.dataset.pidx].modules,+e.dataset.midx,+e.dataset.dir); }
+  };
+
+  document.addEventListener('click',function(ev){
+    var el=ev.target.closest('[data-act]'); if(!el) return;
+    var a=el.dataset.act;
+    if(a==='preview'){
+      document.getElementById('previewFrame').srcdoc=buildFullHTML(data);
+      document.getElementById('mask').classList.add('on'); return;
+    }
+    if(a==='close-preview'){ document.getElementById('mask').classList.remove('on'); return; }
+    if(a==='download'){ download(); return; }
+    if(a==='save-local'){ saveLocal(); return; }
+    if(a==='reset'){
+      if(!confirm('放弃所有修改，还原成打开时的内容？')) return;
+      data=JSON.parse(JSON.stringify(ORIGIN)); open={}; dirty=false;
+      var d=document.getElementById('dirty'); d.textContent='● 未修改'; d.className='dirty clean';
+      render(); toast('已还原'); return;
+    }
+    if(ACT[a]){
+      var r=ACT[a](el);
+      if(r===false) return;
+      mark(); render();
+    }
+  });
+
+  function onEdit(ev){
+    var el=ev.target; if(!el.dataset||!el.dataset.path) return;
+    var v;
+    if(el.dataset.multi) v=el.value.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+    else if(el.dataset.type==='bool') v=el.checked;
+    else if(el.dataset.type==='num') v=Number(el.value)||0;
+    else v=el.value;
+    setPath(data,el.dataset.path,v);
+    mark();
+  }
+  document.addEventListener('input',onEdit);
+  document.addEventListener('change',function(ev){
+    if(ev.target.dataset && (ev.target.dataset.type==='bool' || ev.target.tagName==='SELECT')) onEdit(ev);
+  });
+
+  /* ---------- 导出 ---------- */
+  function serialize(){
+    return '/* 主播维护课堂 · 内容配置（由 editor.html 导出，'+new Date().toLocaleString('zh-CN')+'） */\n'+
+           '/* 这是全站唯一内容源：改这里，或用 editor.html 可视化编辑 */\n'+
+           'window.SITE_CONTENT = '+JSON.stringify(data,null,2)+';\n';
+  }
+  function download(){
+    var blob=new Blob([serialize()],{type:'text/javascript;charset=utf-8'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='content.js';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+    toast('已下载 content.js，覆盖到项目目录即可');
+  }
+  async function saveLocal(){
+    if(!window.showSaveFilePicker){ toast('这个浏览器不支持直接保存，请点「下载 content.js」'); return; }
+    try{
+      var h=await window.showSaveFilePicker({
+        suggestedName:'content.js',
+        types:[{description:'JavaScript 文件',accept:{'text/javascript':['.js']}}]
+      });
+      var w=await h.createWritable(); await w.write(serialize()); await w.close();
+      dirty=false;
+      var d=document.getElementById('dirty'); d.textContent='● 已保存'; d.className='dirty clean';
+      toast('保存成功！刷新 index.html 就能看到改后的样子');
+    }catch(err){ if(err.name!=='AbortError') toast('保存失败：'+err.message); }
+  }
+
+  window.addEventListener('beforeunload',function(e){ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+  render();
+})();
+</script>
+</body>
+</html>
